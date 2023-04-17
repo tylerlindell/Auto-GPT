@@ -2,6 +2,7 @@
 import pinecone
 
 from memory.base import MemoryProviderSingleton, get_ada_embedding
+from json_parser import fix_and_parse_json
 
 
 class PineconeMemory(MemoryProviderSingleton):
@@ -31,6 +32,9 @@ class PineconeMemory(MemoryProviderSingleton):
 
     def get(self, data):
         return self.get_relevant(data, 1)
+    
+    def list_indexes(self):
+        return pinecone.list_indexes()
 
     def clear(self):
         self.index.delete(deleteAll=True)
@@ -45,7 +49,7 @@ class PineconeMemory(MemoryProviderSingleton):
         query_embedding = get_ada_embedding(data)
         results = self.index.query(query_embedding, top_k=num_relevant, include_metadata=True)
         sorted_results = sorted(results.matches, key=lambda x: x.score)
-        return [str(item['metadata']["raw_text"]) for item in sorted_results]
+        return [fix_and_parse_json(str(item['metadata']["raw_text"])) for item in sorted_results]
 
     def get_stats(self):
         return self.index.describe_index_stats()

@@ -1,4 +1,4 @@
-import json
+import json, re
 from typing import Any, Dict, Union
 from call_ai_function import call_ai_function
 from config import Config
@@ -25,6 +25,36 @@ JSON_SCHEMA = """
 }
 """
 
+def fixJSON(jsonStr):
+    # Substitue all the backslash from JSON string.
+    jsonStr = jsonStr.replace('\t', '').replace('\\n', '\n')
+    jsonStr = re.sub(r'\\', '', jsonStr)
+    try:
+        json.loads(jsonStr)
+        return jsonStr
+    except ValueError:
+        while True:
+            # Search json string specifically for '"'
+            b = re.search(r'[\w|"]\s?(")\s?[\w|"]', jsonStr)
+            keys_with_invalid_string = re.search("(?:((\\')\w+(\\'):))", jsonStr)
+
+            # If we don't find any the we come out of loop
+            if not b and not keys_with_invalid_string:
+                break
+
+            # Get the location of \"
+            if b is not None:
+                s, e = b.span(1)
+                c = jsonStr[s:e]
+                c = c.replace('"',"'")
+                jsonStr = jsonStr[:s] + c + jsonStr[e:]
+            
+            if keys_with_invalid_string is not None:
+                f, l = keys_with_invalid_string.span(1) 
+                key_index = jsonStr[f:l]
+                key_index = key_index.replace("'", '"')
+                jsonStr = jsonStr[:f] + key_index + jsonStr[l:]
+        return jsonStr
 
 def fix_and_parse_json(    
     json_str: str,
@@ -32,11 +62,11 @@ def fix_and_parse_json(
 ) -> Union[str, Dict[Any, Any]]:
     """Fix and parse JSON string"""
     try:
-        json_str = json_str.replace('\t', '')
+        json_str = fixJSON(json_str)
         return json.loads(json_str)
     except json.JSONDecodeError as _:  # noqa: F841
-        json_str = correct_json(json_str)
         try:
+            json_str = correct_json(json_str)
             return json.loads(json_str)
         except json.JSONDecodeError as _:  # noqa: F841
             pass
@@ -53,6 +83,9 @@ def fix_and_parse_json(
         last_brace_index = json_str.rindex("}")
         json_str = json_str[:last_brace_index+1]
         return json.loads(json_str)
+    except ValueError:
+        loaded_json = {"string_response": json_str}
+        return loaded_json
     except json.JSONDecodeError as e:  # noqa: F841
         if try_to_fix_with_gpt:
             print("Warning: Failed to parse AI output, attempting to fix."
@@ -99,8 +132,8 @@ def fix_json(json_str: str, schema: str) -> str:
         print("----------- END OF FIX ATTEMPT ----------------")
 
     try:
-        json.loads(result_string)  # just check the validity
-        return result_string
+        result_string = fixJSON(result_string)  # just check the validity
+        return json.loads(result_string)
     except:  # noqa: E722
         # Get the call stack:
         # import traceback

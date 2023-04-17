@@ -20,7 +20,7 @@ def get_memory(cfg, init=False):
                   " to use Pinecone as a memory backend.")
         else:
             memory = PineconeMemory(cfg)
-            if init:
+            if init and len(memory.list_indexes()) > 0:
                 memory.clear()
     elif cfg.memory_backend == "redis":
         if not RedisMemory:
