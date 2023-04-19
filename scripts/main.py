@@ -266,6 +266,8 @@ def parse_arguments():
     """Parses the arguments passed to the script"""
     global cfg
     cfg.set_debug_mode(False)
+    cfg.set_remember_mode(False)
+    cfg.set_remember_mode(False)
     cfg.set_continuous_mode(False)
     cfg.set_speak_mode(False)
 
@@ -273,6 +275,7 @@ def parse_arguments():
     parser.add_argument('--continuous', action='store_true', help='Enable Continuous Mode')
     parser.add_argument('--speak', action='store_true', help='Enable Speak Mode')
     parser.add_argument('--debug', action='store_true', help='Enable Debug Mode')
+    parser.add_argument('--remember', dest="store_true", help='Enable Remember Mode for Pincone')
     parser.add_argument('--gpt3only', action='store_true', help='Enable GPT3.5 Only Mode')
     parser.add_argument('--gpt4only', action='store_true', help='Enable GPT4 Only Mode')
     parser.add_argument('--use-memory', '-m', dest="memory_type", help='Defines which Memory backend to use')
@@ -305,6 +308,10 @@ def parse_arguments():
     if args.debug:
         logger.typewriter_log("Debug Mode: ", Fore.GREEN, "ENABLED")
         cfg.set_debug_mode(True)
+        
+    if args.remember:
+        logger.typewriter_log("Remember Mode: ", Fore.GREEN, "ENABLED")
+        cfg.set_remember_mode(True)
 
     if args.memory_type:
         supported_memory = get_supported_memory_backends()
