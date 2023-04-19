@@ -31,6 +31,9 @@ class PineconeMemory(MemoryProviderSingleton):
 
     def get(self, data):
         return self.get_relevant(data, 1)
+    
+    def list_indexes(self):
+        return pinecone.list_indexes()
 
     def clear(self):
         self.index.delete(deleteAll=True)
