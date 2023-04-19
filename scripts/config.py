@@ -144,3 +144,7 @@ class Config(metaclass=Singleton):
     def set_debug_mode(self, value: bool):
         """Set the debug mode value."""
         self.debug_mode = value
+
+    def set_remember_mode(self, value: bool):
+        """Set the remember mode value."""
+        self.remember_mode = value
