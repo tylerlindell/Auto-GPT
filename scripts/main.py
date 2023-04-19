@@ -340,7 +340,8 @@ user_input = "Determine which next command to use, and respond using the format 
 
 # Initialize memory and make sure it is empty.
 # this is particularly important for indexing and referencing pinecone memory
-memory = get_memory(cfg, init=True)
+should_clear_memory = cfg.remember_mode == False
+memory = get_memory(cfg, init=should_clear_memory)
 print('Using memory of type: ' + memory.__class__.__name__)
 
 # Interaction Loop
